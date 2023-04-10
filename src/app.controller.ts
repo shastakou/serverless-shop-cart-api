@@ -13,8 +13,8 @@ import { LocalAuthGuard, AuthService, BasicAuthGuard } from './auth';
 export class AppController {
   constructor(private authService: AuthService) {}
 
-  @Get(['', 'ping'])
   @HttpCode(HttpStatus.OK)
+  @Get(['', 'ping'])
   healthCheck() {
     return { message: "It's alive!" };
   }

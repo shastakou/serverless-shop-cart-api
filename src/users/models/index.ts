@@ -1,4 +1,4 @@
-export { users as User } from '@prisma/client';
+export { User } from '@prisma/client';
 
 export interface CreateUserDto {
   name: string;

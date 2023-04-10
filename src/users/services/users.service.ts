@@ -13,13 +13,13 @@ export class UsersService {
   ) {}
 
   findUserByName(name: string): Promise<User | null> {
-    return this.prisma.users.findFirst({ where: { name } });
+    return this.prisma.user.findFirst({ where: { name } });
   }
 
   async createUser({ name, password }: CreateUserDto): Promise<User> {
     const salt = await genSalt(Number(this.config.get<string>('HASH_SALT')));
     const hashedPassword = await hash(password, salt);
-    return this.prisma.users.create({
+    return this.prisma.user.create({
       data: { name, password: hashedPassword },
     });
   }

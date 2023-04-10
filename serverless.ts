@@ -4,6 +4,7 @@ const serverlessConfiguration: AWS = {
   service: 'cart-service',
   frameworkVersion: '3',
   plugins: ['serverless-esbuild', 'serverless-offline'],
+  useDotenv: true,
   provider: {
     name: 'aws',
     runtime: 'nodejs16.x',
@@ -21,6 +22,7 @@ const serverlessConfiguration: AWS = {
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
+      DATABASE_URL: '${env:DATABASE_URL}',
     },
   },
   functions: {
@@ -43,7 +45,13 @@ const serverlessConfiguration: AWS = {
     },
   },
   package: {
-    patterns: ['!**', 'node_modules/@nestjs/**', 'package.json'],
+    patterns: [
+      '!**',
+      'node_modules/@nestjs/**',
+      'package.json',
+      '**/*.prisma',
+      '**/libquery_engine-rhel-openssl-1.0.x.so.node',
+    ],
   },
   custom: {
     region: '${opt:region, self:provider.region}',
