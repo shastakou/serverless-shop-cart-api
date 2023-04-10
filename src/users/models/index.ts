@@ -1,7 +1,6 @@
+export { users as User } from '@prisma/client';
 
-export interface User {
-  id?: string;
+export interface CreateUserDto {
   name: string;
-  email?: string;
-  password?: string;
+  password: string;
 }

@@ -1,28 +1,26 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'nestjs-prisma';
+import { ConfigService } from '@nestjs/config';
+import { genSalt, hash } from 'bcryptjs';
 
-import { v4 } from 'uuid';
-
-import { User } from '../models';
+import { CreateUserDto, User } from '../models';
 
 @Injectable()
 export class UsersService {
-  private readonly users: Record<string, User>;
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+  ) {}
 
-  constructor() {
-    this.users = {}
+  findUserByName(name: string): Promise<User | null> {
+    return this.prisma.users.findFirst({ where: { name } });
   }
 
-  findOne(userId: string): User {
-    return this.users[ userId ];
+  async createUser({ name, password }: CreateUserDto): Promise<User> {
+    const salt = await genSalt(Number(this.config.get<string>('HASH_SALT')));
+    const hashedPassword = await hash(password, salt);
+    return this.prisma.users.create({
+      data: { name, password: hashedPassword },
+    });
   }
-
-  createOne({ name, password }: User): User {
-    const id = v4(v4());
-    const newUser = { id: name || id, name, password };
-
-    this.users[ id ] = newUser;
-
-    return newUser;
-  }
-
 }
