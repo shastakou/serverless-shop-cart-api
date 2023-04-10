@@ -1,20 +1,64 @@
-import { CartItem } from '../../cart/models';
+import { OrderModel, OrderStatus } from '@prisma/client';
+export { OrderModel, OrderStatus } from '@prisma/client';
+import { CartWithItems } from '../../cart/models';
 
-export type Order = {
-  id?: string,
-  userId: string;
-  cartId: string;
-  items: CartItem[]
-  payment: {
-    type: string,
-    address?: any,
-    creditCard?: any,
-  },
-  delivery: {
-    type: string,
-    address: any,
-  },
-  comments: string,
-  status: string;
-  total: number;
-}
+export type OrderWithCartModel = OrderModel & {
+  cart: CartWithItems;
+};
+
+export type OrderDto = {
+  id: string;
+  address: {
+    address: string;
+    comment: string;
+    firstName: string;
+    lastName: string;
+  };
+  items: {
+    count: number;
+    productId: string;
+  }[];
+  statusHistory: {
+    status: OrderStatus;
+    timestamp: Date;
+    comment: string;
+  }[];
+};
+
+export type CreateOrderDto = {
+  address: {
+    address: string;
+    comment: string;
+    firstName: string;
+    lastName: string;
+  };
+  items: {
+    count: number;
+    productId: string;
+    price: number;
+  }[];
+};
+
+export type OrderStatusUpdateDto = {
+  status: OrderStatus;
+  comment: string;
+};
+
+export const mapOrderModelToOrderDto = (
+  order: OrderWithCartModel,
+): OrderDto => {
+  const delivery = order.delivery as OrderDto['address'];
+
+  return {
+    id: order.id,
+    address: delivery,
+    items: order.cart.cartItems,
+    statusHistory: [
+      {
+        status: order.status,
+        timestamp: order.cart.updatedAt,
+        comment: delivery.comment,
+      },
+    ],
+  };
+};

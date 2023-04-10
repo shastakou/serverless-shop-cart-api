@@ -69,7 +69,7 @@ export class CartService {
     return this.prisma.cart.deleteMany({ where: { userId } });
   }
 
-  changeStatusById(id: string, status: CartStatus): Promise<Cart> {
+  updateStatus(id: string, status: CartStatus): Promise<Cart> {
     return this.prisma.cart.update({ where: { id }, data: { status } });
   }
 }
