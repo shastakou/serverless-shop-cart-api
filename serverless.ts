@@ -3,7 +3,11 @@ import { AWS } from '@serverless/typescript';
 const serverlessConfiguration: AWS = {
   service: 'cart-service',
   frameworkVersion: '3',
-  plugins: ['serverless-esbuild', 'serverless-offline'],
+  plugins: [
+    'serverless-esbuild',
+    'serverless-offline',
+    'serverless-plugin-scripts',
+  ],
   useDotenv: true,
   provider: {
     name: 'aws',
@@ -49,8 +53,8 @@ const serverlessConfiguration: AWS = {
       '!**',
       'node_modules/@nestjs/**',
       'package.json',
-      '**/*.prisma',
-      '**/libquery_engine-rhel-openssl-1.0.x.so.node',
+      'dist/schema.prisma',
+      'dist/libquery_engine-rhel-openssl-1.0.x.so.node',
     ],
   },
   custom: {
@@ -67,6 +71,11 @@ const serverlessConfiguration: AWS = {
         'class-validator',
         'cache-manager',
       ],
+    },
+    scripts: {
+      hooks: {
+        'before:package:createDeploymentArtifacts': 'npm run postbuild',
+      },
     },
   },
 };
