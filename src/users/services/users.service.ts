@@ -3,7 +3,7 @@ import { PrismaService } from 'nestjs-prisma';
 import { ConfigService } from '@nestjs/config';
 import { genSalt, hash } from 'bcryptjs';
 
-import { CreateUserDto, User } from '../models';
+import { UserCreateDto, UserModel } from '../models';
 
 @Injectable()
 export class UsersService {
@@ -12,14 +12,14 @@ export class UsersService {
     private readonly config: ConfigService,
   ) {}
 
-  findUserByName(name: string): Promise<User | null> {
-    return this.prisma.user.findFirst({ where: { name } });
+  findUserByName(name: string): Promise<UserModel | null> {
+    return this.prisma.userModel.findFirst({ where: { name } });
   }
 
-  async createUser({ name, password }: CreateUserDto): Promise<User> {
+  async createUser({ name, password }: UserCreateDto): Promise<UserModel> {
     const salt = await genSalt(Number(this.config.get<string>('HASH_SALT')));
     const hashedPassword = await hash(password, salt);
-    return this.prisma.user.create({
+    return this.prisma.userModel.create({
       data: { name, password: hashedPassword },
     });
   }

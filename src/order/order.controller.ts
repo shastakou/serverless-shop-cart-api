@@ -15,7 +15,7 @@ import {
 
 import { BasicAuthGuard } from '../auth';
 import {
-  CreateOrderDto,
+  OrderCreateDto,
   OrderStatusUpdateDto,
   mapOrderModelToOrderDto,
 } from './models';
@@ -37,7 +37,7 @@ export class OrderController {
   async findAll() {
     const orders = await this.orderService.findAll();
 
-    return orders.map(order => mapOrderModelToOrderDto(order));
+    return orders.map((order) => mapOrderModelToOrderDto(order));
   }
 
   @UseGuards(BasicAuthGuard)
@@ -52,7 +52,7 @@ export class OrderController {
   @UseGuards(BasicAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Put()
-  async create(@Req() req: AppRequest, @Body() body: CreateOrderDto) {
+  async create(@Req() req: AppRequest, @Body() body: OrderCreateDto) {
     const userId = getUserIdFromRequest(req);
 
     if (!userId) {

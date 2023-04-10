@@ -1,6 +1,6 @@
-export { User } from '@prisma/client';
+export { UserModel } from '@prisma/client';
 
-export interface CreateUserDto {
+export interface UserCreateDto {
   name: string;
   password: string;
 }

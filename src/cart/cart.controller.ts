@@ -15,7 +15,7 @@ import {
 import { BasicAuthGuard /* JwtAuthGuard  */ } from '../auth';
 import { AppRequest, getUserIdFromRequest } from '../shared';
 import { CartService } from './services';
-import { PurchasedProduct } from './models';
+import { PurchasedProductDto } from './models';
 
 @Controller('profile/cart')
 export class CartController {
@@ -39,7 +39,7 @@ export class CartController {
   @UseGuards(BasicAuthGuard)
   @HttpCode(HttpStatus.OK)
   @Put()
-  updateUserCart(@Req() req: AppRequest, @Body() body: PurchasedProduct) {
+  updateUserCart(@Req() req: AppRequest, @Body() body: PurchasedProductDto) {
     const userId = getUserIdFromRequest(req);
 
     if (!userId) {

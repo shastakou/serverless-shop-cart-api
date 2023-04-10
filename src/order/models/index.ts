@@ -1,9 +1,9 @@
 import { OrderModel, OrderStatus } from '@prisma/client';
 export { OrderModel, OrderStatus } from '@prisma/client';
-import { CartWithItems } from '../../cart/models';
+import { CartWithItemsModel } from '../../cart/models';
 
 export type OrderWithCartModel = OrderModel & {
-  cart: CartWithItems;
+  cart: CartWithItemsModel;
 };
 
 export type OrderDto = {
@@ -25,7 +25,7 @@ export type OrderDto = {
   }[];
 };
 
-export type CreateOrderDto = {
+export type OrderCreateDto = {
   address: {
     address: string;
     comment: string;

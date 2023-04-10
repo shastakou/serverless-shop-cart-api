@@ -1,7 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
-  // binaryTargets = ["native", "rhel-openssl-1.0.x"]
-  binaryTargets = ["native"]
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
@@ -9,35 +8,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model CartItem {
-  id        String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  cartId    String @map("cart_id") @db.Uuid
-  productId String @map("product_id") @db.Uuid
+model CartItemModel {
+  id        String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  cartId    String    @map("cart_id") @db.Uuid
+  productId String    @map("product_id") @db.Uuid
   count     Int
-  cart      Cart   @relation(fields: [cartId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  cart      CartModel @relation(fields: [cartId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@map("cart_items")
 }
 
-model Cart {
-  id        String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt DateTime     @default(now()) @map("updated_at") @db.Timestamp(6)
-  status    CartStatus?  @default(OPEN)
-  userId    String?      @map("user_id") @db.Uuid
-  cartItems CartItem[]
-  user      User?        @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_id_fk")
+model CartModel {
+  id        String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime        @default(now()) @map("updated_at") @db.Timestamp(6)
+  status    CartStatus?     @default(OPEN)
+  userId    String?         @map("user_id") @db.Uuid
+  cartItems CartItemModel[]
+  user      UserModel?      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_id_fk")
   orders    OrderModel[]
 
   @@map("carts")
 }
 
-model User {
+model UserModel {
   id       String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   name     String
   email    String?
   password String?
-  carts    Cart[]
+  carts    CartModel[]
   orders   OrderModel[]
 
   @@map("users")
@@ -51,8 +50,8 @@ model OrderModel {
   delivery Json?        @db.Json
   status   OrderStatus? @default(OPEN)
   total    Float
-  cart     Cart         @relation(fields: [cartId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  user     User         @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  cart     CartModel    @relation(fields: [cartId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user     UserModel    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@map("orders")
 }

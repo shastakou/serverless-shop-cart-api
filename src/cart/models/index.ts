@@ -1,9 +1,9 @@
-import { Cart, CartItem } from '@prisma/client';
+import { CartModel, CartItemModel } from '@prisma/client';
 
-export { CartStatus, Cart, CartItem } from '@prisma/client';
+export { CartStatus, CartModel, CartItemModel } from '@prisma/client';
 
-export type CartWithItems = Cart & {
-  cartItems: CartItem[];
+export type CartWithItemsModel = CartModel & {
+  cartItems: CartItemModel[];
 };
 
-export type PurchasedProduct = { productId: string; count: number };
+export type PurchasedProductDto = { productId: string; count: number };

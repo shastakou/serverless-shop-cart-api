@@ -1,14 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 
-import { Cart, CartStatus, CartWithItems, PurchasedProduct } from '../models';
+import {
+  CartModel,
+  CartStatus,
+  CartWithItemsModel,
+  PurchasedProductDto,
+} from '../models';
 
 @Injectable()
 export class CartService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findByUserId(userId: string): Promise<CartWithItems> {
-    return this.prisma.cart.findFirst({
+  findByUserId(userId: string): Promise<CartWithItemsModel> {
+    return this.prisma.cartModel.findFirst({
       where: { userId, status: CartStatus.OPEN },
       include: {
         cartItems: true,
@@ -16,18 +21,18 @@ export class CartService {
     });
   }
 
-  async createByUserId(userId: string): Promise<CartWithItems> {
+  async createByUserId(userId: string): Promise<CartWithItemsModel> {
     const userCart = {
       userId,
       status: CartStatus.OPEN,
     };
 
-    const createdCart = await this.prisma.cart.create({ data: userCart });
+    const createdCart = await this.prisma.cartModel.create({ data: userCart });
 
     return { ...createdCart, cartItems: [] };
   }
 
-  async findOrCreateByUserId(userId: string): Promise<CartWithItems> {
+  async findOrCreateByUserId(userId: string): Promise<CartWithItemsModel> {
     const userCart = await this.findByUserId(userId);
 
     if (userCart) {
@@ -39,14 +44,16 @@ export class CartService {
 
   async updateByUserId(
     userId: string,
-    { productId, count }: PurchasedProduct,
-  ): Promise<CartWithItems> {
+    { productId, count }: PurchasedProductDto,
+  ): Promise<CartWithItemsModel> {
     const cart = await this.findOrCreateByUserId(userId);
 
-    const foundItem = cart.cartItems.find(item => item.productId === productId);
+    const foundItem = cart.cartItems.find(
+      (item) => item.productId === productId,
+    );
     if (foundItem) {
       foundItem.count = count;
-      await this.prisma.cartItem.update({
+      await this.prisma.cartItemModel.update({
         where: { id: foundItem.id },
         data: foundItem,
       });
@@ -56,7 +63,7 @@ export class CartService {
         productId,
         count,
       };
-      const createdItem = await this.prisma.cartItem.create({
+      const createdItem = await this.prisma.cartItemModel.create({
         data: newItem,
       });
       cart.cartItems.push(createdItem);
@@ -66,10 +73,10 @@ export class CartService {
   }
 
   removeByUserId(userId: string): Promise<{ count: number }> {
-    return this.prisma.cart.deleteMany({ where: { userId } });
+    return this.prisma.cartModel.deleteMany({ where: { userId } });
   }
 
-  updateStatus(id: string, status: CartStatus): Promise<Cart> {
-    return this.prisma.cart.update({ where: { id }, data: { status } });
+  updateStatus(id: string, status: CartStatus): Promise<CartModel> {
+    return this.prisma.cartModel.update({ where: { id }, data: { status } });
   }
 }
