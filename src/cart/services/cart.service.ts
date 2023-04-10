@@ -1,31 +1,34 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'nestjs-prisma';
 
-import { v4 } from 'uuid';
-
-import { Cart } from '../models';
+import { Cart, CartStatus, CartWithItems, PurchasedProduct } from '../models';
 
 @Injectable()
 export class CartService {
-  private userCarts: Record<string, Cart> = {};
+  constructor(private readonly prisma: PrismaService) {}
 
-  findByUserId(userId: string): Cart {
-    return this.userCarts[ userId ];
+  findByUserId(userId: string): Promise<CartWithItems> {
+    return this.prisma.cart.findFirst({
+      where: { userId, status: CartStatus.OPEN },
+      include: {
+        cartItems: true,
+      },
+    });
   }
 
-  createByUserId(userId: string) {
-    const id = v4(v4());
+  async createByUserId(userId: string): Promise<CartWithItems> {
     const userCart = {
-      id,
-      items: [],
+      userId,
+      status: CartStatus.OPEN,
     };
 
-    this.userCarts[ userId ] = userCart;
+    const createdCart = await this.prisma.cart.create({ data: userCart });
 
-    return userCart;
+    return { ...createdCart, cartItems: [] };
   }
 
-  findOrCreateByUserId(userId: string): Cart {
-    const userCart = this.findByUserId(userId);
+  async findOrCreateByUserId(userId: string): Promise<CartWithItems> {
+    const userCart = await this.findByUserId(userId);
 
     if (userCart) {
       return userCart;
@@ -34,22 +37,39 @@ export class CartService {
     return this.createByUserId(userId);
   }
 
-  updateByUserId(userId: string, { items }: Cart): Cart {
-    const { id, ...rest } = this.findOrCreateByUserId(userId);
+  async updateByUserId(
+    userId: string,
+    { productId, count }: PurchasedProduct,
+  ): Promise<CartWithItems> {
+    const cart = await this.findOrCreateByUserId(userId);
 
-    const updatedCart = {
-      id,
-      ...rest,
-      items: [ ...items ],
+    const foundItem = cart.cartItems.find(item => item.productId === productId);
+    if (foundItem) {
+      foundItem.count = count;
+      await this.prisma.cartItem.update({
+        where: { id: foundItem.id },
+        data: foundItem,
+      });
+    } else {
+      const newItem = {
+        cartId: cart.id,
+        productId,
+        count,
+      };
+      const createdItem = await this.prisma.cartItem.create({
+        data: newItem,
+      });
+      cart.cartItems.push(createdItem);
     }
 
-    this.userCarts[ userId ] = { ...updatedCart };
-
-    return { ...updatedCart };
+    return cart;
   }
 
-  removeByUserId(userId): void {
-    this.userCarts[ userId ] = null;
+  removeByUserId(userId: string): Promise<{ count: number }> {
+    return this.prisma.cart.deleteMany({ where: { userId } });
   }
 
+  changeStatusById(id: string, status: CartStatus): Promise<Cart> {
+    return this.prisma.cart.update({ where: { id }, data: { status } });
+  }
 }
