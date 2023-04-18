@@ -1,0 +1,11 @@
+.vscode
+.serverless
+.dockerignore
+.elasticbeanstalk
+.esbuild
+Dockerfile
+node_modules
+npm-debug.log
+dist
+db
+serverless*
