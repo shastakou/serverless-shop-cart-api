@@ -1,7 +1,7 @@
 import { Request } from 'express';
 
-import { User } from '../../users';
+import { UserModel } from '../../users';
 
 export interface AppRequest extends Request {
-  user?: User
+  user?: { id: string; name: string };
 }

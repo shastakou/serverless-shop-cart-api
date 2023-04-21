@@ -1,0 +1,75 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CartItemModel {
+  id        String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  cartId    String    @map("cart_id") @db.Uuid
+  productId String    @map("product_id") @db.Uuid
+  count     Int
+  cart      CartModel @relation(fields: [cartId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("cart_items")
+}
+
+model CartModel {
+  id        String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime        @default(now()) @map("updated_at") @db.Timestamp(6)
+  status    CartStatus?     @default(OPEN)
+  userId    String?         @map("user_id") @db.Uuid
+  cartItems CartItemModel[]
+  user      UserModel?      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_id_fk")
+  orders    OrderModel[]
+
+  @@map("carts")
+}
+
+model UserModel {
+  id       String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name     String
+  email    String?
+  password String?
+  carts    CartModel[]
+  orders   OrderModel[]
+
+  @@map("users")
+}
+
+model OrderModel {
+  id       String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId   String       @map("user_id") @db.Uuid
+  cartId   String       @map("cart_id") @db.Uuid
+  payment  Json?        @db.Json
+  delivery Json?        @db.Json
+  status   OrderStatus? @default(OPEN)
+  total    Float
+  cart     CartModel    @relation(fields: [cartId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user     UserModel    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("orders")
+}
+
+enum CartStatus {
+  OPEN
+  ORDERED
+
+  @@map("cart_status")
+}
+
+enum OrderStatus {
+  OPEN
+  APPROVED
+  CONFIRMED
+  SENT
+  COMPLETED
+  CANCELLED
+
+  @@map("order_status")
+}

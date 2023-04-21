@@ -1,39 +1,87 @@
 import { Injectable } from '@nestjs/common';
-import { v4 } from 'uuid';
+import { PrismaService } from 'nestjs-prisma';
 
-import { Order } from '../models';
+import {
+  OrderCreateDto,
+  OrderModel,
+  OrderStatus,
+  OrderStatusUpdateDto,
+  OrderWithCartModel,
+} from '../models';
+import { CartService } from '../../cart/services';
+import { CartStatus } from '../../cart/models';
 
 @Injectable()
 export class OrderService {
-  private orders: Record<string, Order> = {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cartService: CartService,
+  ) {}
 
-  findById(orderId: string): Order {
-    return this.orders[ orderId ];
+  async findById(id: string): Promise<OrderWithCartModel> {
+    return this.prisma.orderModel.findUnique({
+      where: { id },
+      include: {
+        cart: { include: { cartItems: true } },
+      },
+    });
   }
 
-  create(data: any) {
-    const id = v4(v4())
-    const order = {
-      ...data,
-      id,
-      status: 'inProgress',
+  async findAll(): Promise<OrderWithCartModel[]> {
+    return this.prisma.orderModel.findMany({
+      include: {
+        cart: { include: { cartItems: true } },
+      },
+    });
+  }
+
+  async create(userId: string, data: OrderCreateDto): Promise<OrderModel> {
+    const cart = await this.cartService.findByUserId(userId);
+
+    const newOrder = {
+      userId,
+      cartId: cart.id,
+      payment: {},
+      delivery: data.address,
+      status: OrderStatus.OPEN,
+      total: data.items.reduce(
+        (acc, item) => (acc += item.count * item.price),
+        0,
+      ),
     };
 
-    this.orders[ id ] = order;
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.orderModel.create({
+        data: newOrder,
+      });
+      await tx.cartModel.update({
+        where: { id: cart.id },
+        data: { status: CartStatus.ORDERED },
+      });
 
-    return order;
+      return order;
+    });
   }
 
-  update(orderId, data) {
-    const order = this.findById(orderId);
+  async updateStatus(
+    id: string,
+    { status, comment }: OrderStatusUpdateDto,
+  ): Promise<OrderModel> {
+    const order = await this.prisma.orderModel.findUnique({
+      where: { id },
+    });
+    const delivery = typeof order.delivery === 'object' ? order.delivery : {};
 
-    if (!order) {
-      throw new Error('Order does not exist.');
-    }
+    return this.prisma.orderModel.update({
+      where: { id },
+      data: {
+        status,
+        delivery: { ...delivery, comment },
+      },
+    });
+  }
 
-    this.orders[ orderId ] = {
-      ...data,
-      id: orderId,
-    }
+  remove(id: string): Promise<OrderModel | null> {
+    return this.prisma.orderModel.delete({ where: { id } });
   }
 }

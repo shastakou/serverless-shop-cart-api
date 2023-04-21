@@ -1,42 +1,35 @@
-import { Controller, Get, Request, Post, UseGuards, HttpStatus } from '@nestjs/common';
-import { LocalAuthGuard, AuthService, JwtAuthGuard, BasicAuthGuard } from './auth';
+import {
+  Controller,
+  Get,
+  Request,
+  Post,
+  UseGuards,
+  HttpStatus,
+  HttpCode,
+} from '@nestjs/common';
+import { LocalAuthGuard, AuthService, BasicAuthGuard } from './auth';
 
 @Controller()
 export class AppController {
-
   constructor(private authService: AuthService) {}
 
-  @Get([ '', 'ping' ])
-  healthCheck(): any {
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'OK',
-    };
+  @HttpCode(HttpStatus.OK)
+  @Get(['', 'ping'])
+  healthCheck() {
+    return { message: "It's alive!" };
   }
 
   @UseGuards(LocalAuthGuard)
-  @Post('api/auth/login')
+  @HttpCode(HttpStatus.OK)
+  @Post('auth/login')
   async login(@Request() req) {
-    const token = this.authService.login(req.user, 'basic');
-
-    return  {
-      statusCode: HttpStatus.OK,
-      message: 'OK',
-      data: {
-        ...token,
-      },
-    };
+    return this.authService.login(req.user, 'basic');
   }
 
   @UseGuards(BasicAuthGuard)
-  @Get('api/profile')
+  @HttpCode(HttpStatus.OK)
+  @Get('profile')
   async getProfile(@Request() req) {
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'OK',
-      data: {
-        user: req.user,
-      },
-    };
+    return req.user;
   }
 }
