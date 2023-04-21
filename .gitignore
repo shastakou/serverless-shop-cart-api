@@ -44,5 +44,7 @@ lerna-debug.log*
 # esbuild directories
 .esbuild
 
+# .env files
 .env
 .env.*
+!.env.example

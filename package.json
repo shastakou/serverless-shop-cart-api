@@ -6,16 +6,16 @@
   "private": true,
   "license": "MIT",
   "engines": {
-    "npm": "~8.19.3",
-    "node": "~16.19.1"
+    "npm": "^8.19.3",
+    "node": "^16.19.1"
   },
   "scripts": {
-    "prebuild": "rimraf dist",
+    "prebuild": "rimraf dist && prisma generate",
     "build": "nest build",
     "build:dev": "nest build --watch",
     "postbuild": "cp node_modules/.prisma/client/schema.prisma dist && cp node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node dist",
-    "run:dev": "sls offline start",
-    "start": "run-p build:dev run:dev",
+    "start": "nest start",
+    "start:lambda": "sls offline start",
     "start:debug": "export SLS_DEBUG=* && node --inspect /usr/local/bin/serverless offline",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -66,7 +66,6 @@
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-import": "^2.27.5",
     "jest": "28.1.2",
-    "npm-run-all": "^4.1.5",
     "prettier": "2.7.1",
     "prisma": "^4.12.0",
     "rimraf": "^3.0.2",

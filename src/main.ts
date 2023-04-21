@@ -1,22 +1,17 @@
-import { NestFactory } from '@nestjs/core';
-import helmet from 'helmet';
 import { Callback, Context, Handler } from 'aws-lambda';
 import serverlessExpress from '@vendia/serverless-express';
-import { PrismaService } from 'nestjs-prisma';
 
-import { AppModule } from './app.module';
+import { createServer } from './app.server';
+
+async function bootstrap(): Promise<void> {
+  const app = await createServer();
+  await app.listen(process.env.PORT || 4000);
+}
 
 let server: Handler;
 
-async function bootstrap(): Promise<Handler> {
-  const app = await NestFactory.create(AppModule);
-  const prismaService = app.get(PrismaService);
-
-  app.setGlobalPrefix('api');
-  app.enableCors();
-  app.use(helmet());
-
-  await prismaService.enableShutdownHooks(app);
+async function bootstrapLambda(): Promise<Handler> {
+  const app = await createServer();
   await app.init();
 
   const expressApp = app.getHttpAdapter().getInstance();
@@ -28,6 +23,10 @@ export const handler: Handler = async (
   context: Context,
   callback: Callback,
 ) => {
-  server = server ?? (await bootstrap());
+  server = server ?? (await bootstrapLambda());
   return server(event, context, callback);
 };
+
+if (process.env.RUNTIME === 'standalone') {
+  bootstrap();
+}
