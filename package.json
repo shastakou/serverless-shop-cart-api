@@ -24,7 +24,11 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "deploy": "sls deploy --verbose"
+    "eb-init": "eb init shastakou-cart-service --region eu-west-1",
+    "eb-create": "eb create shastakou-cart-service-dev --single --cname shastakou-cart-service-dev",
+    "eb-terminate": "eb terminate",
+    "deploy:eb": "eb deploy",
+    "deploy:lambda": "sls deploy --verbose"
   },
   "dependencies": {
     "@nestjs/common": "^9.3.12",
